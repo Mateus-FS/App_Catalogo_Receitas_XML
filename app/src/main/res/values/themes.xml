@@ -6,4 +6,10 @@
     </style>
 
     <style name="Theme.App_Catalogo_Receitas_XML" parent="Base.Theme.App_Catalogo_Receitas_XML" />
+
+    <!-- Remove o indicador colorido do BottomNavigationView (equivalente ao indicatorColor = Transparent do Compose) -->
+    <style name="Widget.Transparent.BottomNavigationIndicator">
+        <item name="android:color">@android:color/transparent</item>
+    </style>
+
 </resources>

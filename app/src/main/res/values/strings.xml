@@ -1,3 +1,27 @@
 <resources>
     <string name="app_name">App_Catalogo_Receitas_XML</string>
+
+    <!-- BarraNavegacao -->
+    <string name="nav_receitas">Receitas</string>
+    <string name="nav_favoritos">Favoritos</string>
+
+    <!-- ReceitaCard -->
+    <string name="cd_adicionar_favorito">Adicionar aos favoritos</string>
+    <string name="cd_remover_favorito">Remover dos favoritos</string>
+
+    <!-- ListaReceitasScreen -->
+    <string name="lista_subtitulo">O que vamos cozinhar hoje?</string>
+    <string name="lista_titulo">Receitas</string>
+    <string name="busca_hint">Buscar receita ou ingrediente</string>
+    <string name="lista_vazia">Nenhuma receita encontrada.</string>
+
+    <!-- ReceitasFavoritasScreen -->
+    <string name="favoritos_subtitulo">Suas preferidas</string>
+    <string name="favoritos_titulo">Favoritos</string>
+    <string name="favoritos_vazio">Toque no coração de uma receita para guardá-la aqui.</string>
+
+    <!-- DetalhesReceitaScreen -->
+    <string name="detalhes_ingredientes">Ingredientes</string>
+    <string name="detalhes_preparo">Modo de preparo</string>
+    <string name="cd_voltar">Voltar</string>
 </resources>

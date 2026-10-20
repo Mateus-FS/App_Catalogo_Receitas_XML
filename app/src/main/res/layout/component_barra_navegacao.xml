@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    BarraNavegacao — equivalente XML do composable BarraNavegacao.
+    Inclua este layout no rodapé da sua Activity/Fragment.
+    Controle a aba selecionada via BarraNavegacaoView (Kotlin).
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- HorizontalDivider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?attr/colorOutlineVariant" />
+
+    <!-- NavigationBar -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigationView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        app:elevation="0dp"
+        app:itemActiveIndicatorStyle="@style/Widget.Transparent.BottomNavigationIndicator"
+        app:itemIconTint="@color/selector_nav_item"
+        app:itemTextColor="@color/selector_nav_item"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/menu_barra_navegacao"
+        xmlns:app="http://schemas.android.com/apk/res-auto" />
+
+</LinearLayout>

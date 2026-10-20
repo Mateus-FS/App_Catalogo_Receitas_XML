@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Fundo do ChipCategoria:
+    - selecionado  → colorPrimary
+    - normal       → colorSurfaceVariant
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true"  android:color="?attr/colorPrimary" />
+    <item android:color="?attr/colorSurfaceVariant" />
+</selector>

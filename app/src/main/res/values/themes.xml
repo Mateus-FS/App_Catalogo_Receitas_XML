@@ -1,0 +1,15 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.App_Catalogo_Receitas_XML" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    </style>
+
+    <style name="Theme.App_Catalogo_Receitas_XML" parent="Base.Theme.App_Catalogo_Receitas_XML" />
+
+    <!-- Remove o indicador colorido do BottomNavigationView (equivalente ao indicatorColor = Transparent do Compose) -->
+    <style name="Widget.Transparent.BottomNavigationIndicator">
+        <item name="android:color">@android:color/transparent</item>
+    </style>
+
+</resources>

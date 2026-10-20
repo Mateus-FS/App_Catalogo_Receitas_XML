@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    DetalhesReceitaScreen → fragment_detalhes_receita.xml
+    Topo colorido (miniatura grande + botões voltar/favorito flutuantes),
+    seguido de ScrollView com todos os detalhes da receita.
+-->
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/scrollDetalhes"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="?attr/colorBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- ── Bloco superior colorido (260dp) ────────────────────────── -->
+        <FrameLayout
+            android:id="@+id/headerCategoria"
+            android:layout_width="match_parent"
+            android:layout_height="260dp"
+            android:background="@color/categoria_outros"
+            tools:background="@color/categoria_doces">
+
+            <!-- Emoji central grande -->
+            <TextView
+                android:id="@+id/txtEmojiHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="🍽️"
+                android:textSize="88sp"
+                tools:text="🍰" />
+
+            <!-- Botões flutuantes: Voltar | Favorito -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:gravity="center_vertical">
+
+                <!-- Botão Voltar (círculo branco) -->
+                <ImageButton
+                    android:id="@+id/btnVoltar"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_botao_circular"
+                    android:src="@drawable/ic_arrow_back"
+                    android:tint="@android:color/black"
+                    android:contentDescription="@string/cd_voltar" />
+
+                <!-- Espaço flexível -->
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <!-- Botão Favorito (círculo branco) -->
+                <ImageButton
+                    android:id="@+id/btnFavoritoDetalhe"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_botao_circular"
+                    android:src="@drawable/ic_favorite_border"
+                    android:tint="?attr/colorOnSurfaceVariant"
+                    android:contentDescription="@string/cd_adicionar_favorito" />
+
+            </LinearLayout>
+
+        </FrameLayout>
+
+        <!-- ── Bloco de conteúdo textual ──────────────────────────────── -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="32dp">
+
+            <!-- Categoria (colorPrimary, labelMedium) -->
+            <TextView
+                android:id="@+id/txtCategoria"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceLabelMedium"
+                android:textColor="?attr/colorPrimary"
+                android:visibility="gone"
+                tools:text="Doces"
+                tools:visibility="visible" />
+
+            <!-- Título da receita (headlineMedium) -->
+            <TextView
+                android:id="@+id/txtTituloReceita"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                android:textColor="?attr/colorOnBackground"
+                tools:text="Bolo de Cenoura" />
+
+            <!-- Resumo: tempo · dificuldade · porções (bodyMedium) -->
+            <TextView
+                android:id="@+id/txtResumo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:visibility="gone"
+                tools:text="50 min · Fácil · 8 porções"
+                tools:visibility="visible" />
+
+            <!-- Descrição da receita (bodyMedium) -->
+            <TextView
+                android:id="@+id/txtDescricao"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:visibility="gone"
+                tools:text="Bolo fofinho de cenoura com cobertura de chocolate."
+                tools:visibility="visible" />
+
+            <!-- Espaço 12dp -->
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="12dp" />
+
+            <!-- Título "Ingredientes" (titleLarge) -->
+            <TextView
+                android:id="@+id/txtTituloIngredientes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/detalhes_ingredientes"
+                android:textAppearance="?attr/textAppearanceTitleLarge"
+                android:textColor="?attr/colorOnBackground" />
+
+            <!-- Container dinâmico — ingredientes são adicionados via código -->
+            <LinearLayout
+                android:id="@+id/containerIngredientes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="4dp" />
+
+            <!-- Espaço 12dp -->
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="12dp" />
+
+            <!-- Título "Modo de preparo" (titleLarge) -->
+            <TextView
+                android:id="@+id/txtTituloPreparo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/detalhes_preparo"
+                android:textAppearance="?attr/textAppearanceTitleLarge"
+                android:textColor="?attr/colorOnBackground" />
+
+            <!-- Container dinâmico — passos são adicionados via código -->
+            <LinearLayout
+                android:id="@+id/containerPassos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="4dp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

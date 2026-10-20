@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- MiniaturaReceitaView: corner radius do fundo arredondado -->
+    <dimen name="miniatura_corner_radius">16dp</dimen>
+
+    <!-- RecyclerView: espaçamento vertical entre cards (equivale ao spacedBy(14.dp)) -->
+    <dimen name="card_spacing">14dp</dimen>
+
+    <!-- DetalhesReceitaFragment: largura do prefixo "•" ou "1." nas listas -->
+    <dimen name="prefixo_largura">24dp</dimen>
+</resources>

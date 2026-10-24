@@ -1,85 +1,82 @@
 package com.example.app_catalogo_receitas_xml.ui.screens
 
+import android.content.res.ColorStateList
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
-import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.app_catalogo_receitas_xml.R
+import com.example.app_catalogo_receitas_xml.data.Favoritos
+import com.example.app_catalogo_receitas_xml.databinding.ComponentReceitaCardBinding
 import com.example.app_catalogo_receitas_xml.model.Receita
-import com.example.app_catalogo_receitas_xml.ui.components.MiniaturaReceitaView
+import com.example.app_catalogo_receitas_xml.util.estiloDaCategoria
 
 /**
- * Adapter para RecyclerView que usa component_receita_card.xml.
- * Equivalente ao bloco items { ReceitaCard(...) } dos composables.
+ * Adapter do RecyclerView: transforma cada Receita em um card (component_receita_card.xml).
+ * Usado na Lista e nos Favoritos.
  */
 class ReceitaAdapter(
     private val onClick: (Receita) -> Unit,
-    private val onFavoritoClick: (Receita) -> Unit,
-    private val getFavorita: (Receita) -> Boolean
-) : ListAdapter<Receita, ReceitaAdapter.ViewHolder>(DIFF) {
+    private val onToggleFavorito: (Receita) -> Unit
+) : RecyclerView.Adapter<ReceitaAdapter.ReceitaViewHolder>() {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.component_receita_card, parent, false)
-        return ViewHolder(view)
+    private var itens: List<Receita> = emptyList()
+
+    /** Troca a lista exibida e redesenha os cards (inclusive os corações). */
+    fun submeter(novos: List<Receita>) {
+        itens = novos
+        notifyDataSetChanged()
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(getItem(position))
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReceitaViewHolder {
+        val binding = ComponentReceitaCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ReceitaViewHolder(binding)
     }
 
-    inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    override fun getItemCount(): Int = itens.size
 
-        private val card       = view.findViewById<View>(R.id.receitaCard)
-        private val miniatura  = view.findViewById<MiniaturaReceitaView>(R.id.miniatura)
-        private val titulo     = view.findViewById<TextView>(R.id.receitaTitulo)
-        private val detalhes   = view.findViewById<TextView>(R.id.receitaDetalhes)
-        private val categoria  = view.findViewById<TextView>(R.id.receitaCategoria)
-        private val btnFav     = view.findViewById<ImageButton>(R.id.btnFavorito)
+    override fun onBindViewHolder(holder: ReceitaViewHolder, position: Int) {
+        holder.vincular(itens[position])
+    }
 
-        fun bind(receita: Receita) {
-            val ctx = itemView.context
-            val favorita = getFavorita(receita)
+    inner class ReceitaViewHolder(
+        private val binding: ComponentReceitaCardBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
 
-            card.setOnClickListener { onClick(receita) }
+        fun vincular(receita: Receita) {
+            val contexto = binding.root.context
+            val favorita = Favoritos.contem(receita.id)
+            val estilo = estiloDaCategoria(receita.categoria)
 
-            miniatura.setCategoria(receita.categoria)
+            // Miniatura colorida com o emoji da categoria
+            binding.miniatura.backgroundTintList = ColorStateList.valueOf(estilo.fundo)
+            binding.emoji.text = estilo.emoji
 
-            titulo.text = receita.titulo
+            binding.titulo.text = receita.titulo
 
-            val detalhesTxt = listOf(receita.tempo, receita.dificuldade)
+            // "50 min · Fácil" (se não houver tempo/dificuldade, mostra a descrição)
+            binding.detalhes.text = listOf(receita.tempo, receita.dificuldade)
                 .filter { it.isNotBlank() }
                 .joinToString(" · ")
                 .ifEmpty { receita.descricao }
-            detalhes.text = detalhesTxt
 
-            categoria.isVisible = receita.categoria.isNotBlank()
-            categoria.text = receita.categoria
+            binding.categoria.isVisible = receita.categoria.isNotBlank()
+            binding.categoria.text = receita.categoria
 
-            // Ícone e tint do favorito
-            if (favorita) {
-                btnFav.setImageResource(R.drawable.ic_favorite)
-                btnFav.setColorFilter(ContextCompat.getColor(ctx, R.color.favorito))
-                btnFav.contentDescription = ctx.getString(R.string.cd_remover_favorito)
-            } else {
-                btnFav.setImageResource(R.drawable.ic_favorite_border)
-                btnFav.clearColorFilter()
-                btnFav.contentDescription = ctx.getString(R.string.cd_adicionar_favorito)
-            }
-            btnFav.setOnClickListener { onFavoritoClick(receita) }
-        }
-    }
+            // Coração: cheio e vermelho se for favorita; contorno e cinza se não
+            binding.botaoFavorito.setImageResource(
+                if (favorita) R.drawable.ic_favorite else R.drawable.ic_favorite_border
+            )
+            val corDoCoracao = if (favorita) R.color.favorito else R.color.texto_secundario
+            binding.botaoFavorito.imageTintList =
+                ColorStateList.valueOf(ContextCompat.getColor(contexto, corDoCoracao))
+            binding.botaoFavorito.contentDescription = contexto.getString(
+                if (favorita) R.string.cd_remover_favorito else R.string.cd_adicionar_favorito
+            )
 
-    companion object {
-        private val DIFF = object : DiffUtil.ItemCallback<Receita>() {
-            override fun areItemsTheSame(old: Receita, new: Receita) = old.id == new.id
-            override fun areContentsTheSame(old: Receita, new: Receita) = old == new
+            binding.cartao.setOnClickListener { onClick(receita) }
+            binding.botaoFavorito.setOnClickListener { onToggleFavorito(receita) }
         }
     }
 }

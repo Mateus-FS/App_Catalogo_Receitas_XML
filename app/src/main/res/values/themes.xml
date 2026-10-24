@@ -1,15 +1,19 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.App_Catalogo_Receitas_XML" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    <!-- Tema claro do app (Material 3), com a mesma identidade visual do protótipo -->
+    <style name="Base.Theme.App_Catalogo_Receitas_XML" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/verde</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/verde</item>
+        <item name="colorSurface">@color/superficie</item>
+        <item name="colorOnSurface">@color/texto_principal</item>
+        <item name="android:colorBackground">@color/fundo</item>
+        <item name="android:windowBackground">@color/fundo</item>
     </style>
 
     <style name="Theme.App_Catalogo_Receitas_XML" parent="Base.Theme.App_Catalogo_Receitas_XML" />
 
-    <!-- Remove o indicador colorido do BottomNavigationView (equivalente ao indicatorColor = Transparent do Compose) -->
+    <!-- Remove o "balão" colorido atrás do item selecionado da barra inferior -->
     <style name="Widget.Transparent.BottomNavigationIndicator">
         <item name="android:color">@android:color/transparent</item>
     </style>
-
 </resources>

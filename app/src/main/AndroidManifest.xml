@@ -11,6 +11,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.App_Catalogo_Receitas_XML">
+
+        <!-- Tela 1: Lista de receitas (tela inicial do app) -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -21,6 +23,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Tela 2: Detalhes de uma receita -->
+        <activity
+            android:name=".ui.screens.DetalhesReceitaActivity"
+            android:exported="false" />
+
+        <!-- Tela 3: Receitas favoritas -->
+        <activity
+            android:name=".ui.screens.ReceitasFavoritasActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

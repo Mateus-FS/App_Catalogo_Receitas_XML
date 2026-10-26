@@ -15,14 +15,21 @@ import com.example.app_catalogo_receitas_xml.model.Receita
 import com.example.app_catalogo_receitas_xml.ui.components.MiniaturaReceitaView
 
 /**
+ * Item exibido no card: a receita + se ela está favoritada.
+ *
+ * O estado de favorito faz parte do item para que o DiffUtil perceba a mudança
+ * e refaça o bind do card (antes, o ícone do coração não atualizava na lista).
+ */
+data class ReceitaItem(val receita: Receita, val favorita: Boolean)
+
+/**
  * Adapter para RecyclerView que usa component_receita_card.xml.
  * Equivalente ao bloco items { ReceitaCard(...) } dos composables.
  */
 class ReceitaAdapter(
     private val onClick: (Receita) -> Unit,
-    private val onFavoritoClick: (Receita) -> Unit,
-    private val getFavorita: (Receita) -> Boolean
-) : ListAdapter<Receita, ReceitaAdapter.ViewHolder>(DIFF) {
+    private val onFavoritoClick: (Receita) -> Unit
+) : ListAdapter<ReceitaItem, ReceitaAdapter.ViewHolder>(DIFF) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -43,9 +50,10 @@ class ReceitaAdapter(
         private val categoria  = view.findViewById<TextView>(R.id.receitaCategoria)
         private val btnFav     = view.findViewById<ImageButton>(R.id.btnFavorito)
 
-        fun bind(receita: Receita) {
+        fun bind(item: ReceitaItem) {
+            val receita = item.receita
             val ctx = itemView.context
-            val favorita = getFavorita(receita)
+            val favorita = item.favorita
 
             card.setOnClickListener { onClick(receita) }
 
@@ -77,9 +85,11 @@ class ReceitaAdapter(
     }
 
     companion object {
-        private val DIFF = object : DiffUtil.ItemCallback<Receita>() {
-            override fun areItemsTheSame(old: Receita, new: Receita) = old.id == new.id
-            override fun areContentsTheSame(old: Receita, new: Receita) = old == new
+        private val DIFF = object : DiffUtil.ItemCallback<ReceitaItem>() {
+            override fun areItemsTheSame(old: ReceitaItem, new: ReceitaItem) =
+                old.receita.id == new.receita.id
+
+            override fun areContentsTheSame(old: ReceitaItem, new: ReceitaItem) = old == new
         }
     }
 }

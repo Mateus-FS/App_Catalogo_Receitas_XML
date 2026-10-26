@@ -19,7 +19,7 @@
     app:chipCornerRadius="50dp"
     app:chipStrokeWidth="0dp"
     app:ensureMinTouchTargetSize="false"
-    app:textColor="@color/selector_chip_text"
+    android:textColor="@color/selector_chip_text"
     app:chipIconVisible="false"
     app:checkedIconVisible="false"
     style="@style/Widget.Material3.Chip.Filter" />

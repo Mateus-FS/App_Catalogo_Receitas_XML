@@ -9,6 +9,7 @@ import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
@@ -16,6 +17,7 @@ import androidx.fragment.app.Fragment
 import com.example.app_catalogo_receitas_xml.R
 import com.example.app_catalogo_receitas_xml.model.Receita
 import com.example.app_catalogo_receitas_xml.ui.components.MiniaturaReceitaView
+import com.google.android.material.color.MaterialColors
 
 /**
  * Equivalente XML de DetalhesReceitaScreen.
@@ -30,6 +32,7 @@ class DetalhesReceitaFragment : Fragment() {
     interface Listener {
         fun onVoltar()
         fun onToggleFavorito(receita: Receita)
+        fun ehFavorita(receita: Receita): Boolean
     }
 
     private var receita: Receita? = null
@@ -51,6 +54,10 @@ class DetalhesReceitaFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val receita = receita ?: return
+
+        // Estado atual vem da Activity (os argumentos só guardam o valor de quando a tela abriu
+        // e ficam desatualizados após alternar o favorito ou recriar a Activity).
+        favorita = listener?.ehFavorita(receita) ?: favorita
 
         // ── Header colorido ──────────────────────────────────────────
         val estilo = MiniaturaReceitaView.estiloDaCategoria(receita.categoria)
@@ -100,15 +107,18 @@ class DetalhesReceitaFragment : Fragment() {
         }
 
         // ── Ingredientes ──────────────────────────────────────────────
+        val corTexto = MaterialColors.getColor(
+            view, com.google.android.material.R.attr.colorOnBackground
+        )
         val containerIngredientes = view.findViewById<LinearLayout>(R.id.containerIngredientes)
         receita.ingredientes.forEach { ingrediente ->
-            adicionarLinhaTexto(containerIngredientes, "•", ingrediente)
+            adicionarLinhaTexto(containerIngredientes, "•", ingrediente, corTexto)
         }
 
         // ── Passos ────────────────────────────────────────────────────
         val containerPassos = view.findViewById<LinearLayout>(R.id.containerPassos)
         receita.passos.forEachIndexed { index, passo ->
-            adicionarLinhaTexto(containerPassos, "${index + 1}.", passo)
+            adicionarLinhaTexto(containerPassos, "${index + 1}.", passo, corTexto)
         }
     }
 
@@ -138,7 +148,12 @@ class DetalhesReceitaFragment : Fragment() {
      * Adiciona uma linha "prefixo + texto" no estilo bodyLarge
      * ao container informado (equivale ao Row { Text("•") Text(ingrediente) } do Compose).
      */
-    private fun adicionarLinhaTexto(container: LinearLayout, prefixo: String, texto: String) {
+    private fun adicionarLinhaTexto(
+        container: LinearLayout,
+        prefixo: String,
+        texto: String,
+        @ColorInt cor: Int
+    ) {
         val row = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(
@@ -150,7 +165,7 @@ class DetalhesReceitaFragment : Fragment() {
         val txtPrefixo = TextView(requireContext()).apply {
             this.text = prefixo
             setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyLarge)
-            setTextColor(ContextCompat.getColor(requireContext(), android.R.color.black))
+            setTextColor(cor)
             layoutParams = LinearLayout.LayoutParams(
                 resources.getDimensionPixelSize(R.dimen.prefixo_largura),
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -160,7 +175,7 @@ class DetalhesReceitaFragment : Fragment() {
         val txtConteudo = TextView(requireContext()).apply {
             this.text = texto
             setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyLarge)
-            setTextColor(ContextCompat.getColor(requireContext(), android.R.color.black))
+            setTextColor(cor)
             layoutParams = LinearLayout.LayoutParams(
                 0,
                 LinearLayout.LayoutParams.WRAP_CONTENT,

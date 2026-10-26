@@ -1,85 +1,88 @@
 package com.example.app_catalogo_receitas_xml.ui.screens
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.commit
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
 import com.example.app_catalogo_receitas_xml.R
+import com.example.app_catalogo_receitas_xml.databinding.FragmentReceitasFavoritasBinding
 import com.example.app_catalogo_receitas_xml.model.Receita
+import com.example.app_catalogo_receitas_xml.ui.viewmodel.ReceitaItem
+import com.example.app_catalogo_receitas_xml.ui.viewmodel.ReceitasViewModel
+import com.example.app_catalogo_receitas_xml.ui.components.SpacingItemDecoration
+import kotlinx.coroutines.launch
 
 /**
- * Equivalente XML de ReceitasFavoritasScreen.
+ * Tela de receitas favoritas.
  *
- * Os dados vêm da Activity host ([Listener.obterFavoritas]) sempre que a view é
- * criada; enquanto a tela está visível, a Activity chama [updateFavoritas].
+ * Usa o [ReceitasViewModel] compartilhado e ViewBinding.
  */
-class ReceitasFavoritasFragment : Fragment() {
+class ReceitasFavoritasFragment : Fragment(R.layout.fragment_receitas_favoritas) {
 
-    interface Listener {
-        fun onReceitaClick(receita: Receita)
-        fun onToggleFavorito(receita: Receita)
-        fun obterFavoritas(): List<Receita>
-    }
+    private val viewModel: ReceitasViewModel by activityViewModels()
 
-    // ── Dados ──────────────────────────────────────────────────────────
-    private var favoritas: List<Receita> = emptyList()
+    private var _binding: FragmentReceitasFavoritasBinding? = null
+    private val binding get() = _binding!!
 
-    // ── Views ──────────────────────────────────────────────────────────
-    private lateinit var recycler: RecyclerView
-    private lateinit var layoutVazio: View
-
-    private val adapter by lazy {
-        ReceitaAdapter(
-            onClick         = { listener?.onReceitaClick(it) },
-            onFavoritoClick = { listener?.onToggleFavorito(it) }
-        )
-    }
-
-    private val listener get() = activity as? Listener
-
-    // ── Ciclo de vida ──────────────────────────────────────────────────
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View = inflater.inflate(R.layout.fragment_receitas_favoritas, container, false)
+    private lateinit var adapter: ReceitaAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        _binding = FragmentReceitasFavoritasBinding.bind(view)
 
-        recycler    = view.findViewById(R.id.recyclerFavoritas)
-        layoutVazio = view.findViewById(R.id.layoutVazio)
+        configurarLista()
+        observarEstado()
+    }
 
-        recycler.layoutManager = LinearLayoutManager(requireContext())
-        recycler.adapter = adapter
-        (recycler.itemAnimator as? SimpleItemAnimator)?.supportsChangeAnimations = false
-        recycler.addItemDecoration(
-            SpacingItemDecoration(resources.getDimensionPixelSize(R.dimen.card_spacing))
+    override fun onDestroyView() {
+        binding.recyclerFavoritas.adapter = null
+        _binding = null
+        super.onDestroyView()
+    }
+
+    private fun configurarLista() {
+        adapter = ReceitaAdapter(
+            onClick = { receita -> abrirDetalhes(receita.id) },
+            onFavoritoClick = { receita -> viewModel.alternarFavorito(receita.id) }
         )
-
-        // A view foi (re)criada: busca o estado atual na Activity e desenha.
-        favoritas = listener?.obterFavoritas() ?: favoritas
-        render()
+        with(binding.recyclerFavoritas) {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = this@ReceitasFavoritasFragment.adapter
+            (itemAnimator as? SimpleItemAnimator)?.supportsChangeAnimations = false
+            addItemDecoration(
+                SpacingItemDecoration(resources.getDimensionPixelSize(R.dimen.card_spacing))
+            )
+        }
     }
 
-    // ── API pública ────────────────────────────────────────────────────
-
-    /** Atualiza a lista de receitas favoritas. Seguro de chamar antes da view existir. */
-    fun updateFavoritas(novas: List<Receita>) {
-        favoritas = novas
-        render()
+    private fun observarEstado() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.favoritas.collect(::renderizar)
+            }
+        }
     }
 
-    // ── Lógica interna ─────────────────────────────────────────────────
-
-    private fun render() {
-        if (view == null) return // será desenhado em onViewCreated
+    private fun renderizar(favoritas: List<Receita>) {
         adapter.submitList(favoritas.map { ReceitaItem(it, favorita = true) })
         val vazio = favoritas.isEmpty()
-        layoutVazio.visibility = if (vazio) View.VISIBLE else View.GONE
-        recycler.visibility    = if (vazio) View.GONE    else View.VISIBLE
+        binding.layoutVazio.isVisible = vazio
+        binding.recyclerFavoritas.isVisible = !vazio
+    }
+
+    private fun abrirDetalhes(receitaId: Int) {
+        parentFragmentManager.commit {
+            setReorderingAllowed(true)
+            replace(R.id.fragment_container, DetalhesReceitaFragment.newInstance(receitaId))
+            addToBackStack(null)
+        }
     }
 
     companion object {

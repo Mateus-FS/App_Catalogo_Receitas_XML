@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    Fundo do ChipCategoria:
-    - selecionado  → colorPrimary
-    - normal       → colorSurfaceVariant
--->
+<!-- Fundo do chip: verde quando selecionado, cinza-esverdeado quando não -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_checked="true"  android:color="?attr/colorPrimary" />
-    <item android:color="?attr/colorSurfaceVariant" />
+    <item android:color="@color/verde" android:state_checked="true" />
+    <item android:color="@color/chip_fundo" />
 </selector>

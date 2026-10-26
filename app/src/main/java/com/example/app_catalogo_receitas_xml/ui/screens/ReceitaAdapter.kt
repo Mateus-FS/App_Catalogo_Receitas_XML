@@ -13,18 +13,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.app_catalogo_receitas_xml.R
 import com.example.app_catalogo_receitas_xml.model.Receita
 import com.example.app_catalogo_receitas_xml.ui.components.MiniaturaReceitaView
+import com.example.app_catalogo_receitas_xml.ui.viewmodel.ReceitaItem
 
 /**
- * Item exibido no card: a receita + se ela está favoritada.
- *
- * O estado de favorito faz parte do item para que o DiffUtil perceba a mudança
- * e refaça o bind do card (antes, o ícone do coração não atualizava na lista).
- */
-data class ReceitaItem(val receita: Receita, val favorita: Boolean)
-
-/**
- * Adapter para RecyclerView que usa component_receita_card.xml.
- * Equivalente ao bloco items { ReceitaCard(...) } dos composables.
+ * Adapter para RecyclerView que exibe cards de receitas.
  */
 class ReceitaAdapter(
     private val onClick: (Receita) -> Unit,
@@ -43,12 +35,12 @@ class ReceitaAdapter(
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
-        private val card       = view.findViewById<View>(R.id.receitaCard)
+        private val card       = view.findViewById<View>(R.id.cartao)
         private val miniatura  = view.findViewById<MiniaturaReceitaView>(R.id.miniatura)
-        private val titulo     = view.findViewById<TextView>(R.id.receitaTitulo)
-        private val detalhes   = view.findViewById<TextView>(R.id.receitaDetalhes)
-        private val categoria  = view.findViewById<TextView>(R.id.receitaCategoria)
-        private val btnFav     = view.findViewById<ImageButton>(R.id.btnFavorito)
+        private val titulo     = view.findViewById<TextView>(R.id.titulo)
+        private val detalhes   = view.findViewById<TextView>(R.id.detalhes)
+        private val categoria  = view.findViewById<TextView>(R.id.categoria)
+        private val btnFav     = view.findViewById<ImageButton>(R.id.botaoFavorito)
 
         fun bind(item: ReceitaItem) {
             val receita = item.receita
@@ -67,10 +59,9 @@ class ReceitaAdapter(
                 .ifEmpty { receita.descricao }
             detalhes.text = detalhesTxt
 
-            categoria.isVisible = receita.categoria.isNotBlank()
-            categoria.text = receita.categoria
+            categoria.isVisible = receita.categoria.titulo.isNotBlank()
+            categoria.text = receita.categoria.titulo
 
-            // Ícone e tint do favorito
             if (favorita) {
                 btnFav.setImageResource(R.drawable.ic_favorite)
                 btnFav.setColorFilter(ContextCompat.getColor(ctx, R.color.favorito))

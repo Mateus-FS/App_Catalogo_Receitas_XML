@@ -2,93 +2,89 @@ package com.example.app_catalogo_receitas_xml.ui.screens
 
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.widget.FrameLayout
 import android.widget.ImageButton
-import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.app_catalogo_receitas_xml.R
+import com.example.app_catalogo_receitas_xml.databinding.FragmentDetalhesReceitaBinding
 import com.example.app_catalogo_receitas_xml.model.Receita
-import com.example.app_catalogo_receitas_xml.ui.components.MiniaturaReceitaView
+import com.example.app_catalogo_receitas_xml.ui.components.LinhaReceitaView
+import com.example.app_catalogo_receitas_xml.ui.viewmodel.ReceitasViewModel
 import com.google.android.material.color.MaterialColors
+import kotlinx.coroutines.launch
 
 /**
- * Equivalente XML de DetalhesReceitaScreen.
+ * Tela de detalhes de uma receita.
  *
- * Uso:
- *   DetalhesReceitaFragment.newInstance(receita, favorita = true)
- *
- * A Activity host deve implementar [DetalhesReceitaFragment.Listener].
+ * Usa o [ReceitasViewModel] compartilhado e recebe apenas o ID da receita via arguments.
  */
-class DetalhesReceitaFragment : Fragment() {
+class DetalhesReceitaFragment : Fragment(R.layout.fragment_detalhes_receita) {
 
-    interface Listener {
-        fun onVoltar()
-        fun onToggleFavorito(receita: Receita)
-        fun ehFavorita(receita: Receita): Boolean
-    }
+    private val viewModel: ReceitasViewModel by activityViewModels()
 
-    private var receita: Receita? = null
-    private var favorita = false
+    private var _binding: FragmentDetalhesReceitaBinding? = null
+    private val binding get() = _binding!!
 
-    private val listener get() = activity as? Listener
+    private var receitaId: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        @Suppress("DEPRECATION")
-        receita  = arguments?.getParcelable(ARG_RECEITA)
-        favorita = arguments?.getBoolean(ARG_FAVORITA, false) ?: false
+        receitaId = arguments?.getInt(ARG_RECEITA_ID) ?: -1
     }
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View = inflater.inflate(R.layout.fragment_detalhes_receita, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val receita = receita ?: return
+        _binding = FragmentDetalhesReceitaBinding.bind(view)
 
-        // Estado atual vem da Activity (os argumentos só guardam o valor de quando a tela abriu
-        // e ficam desatualizados após alternar o favorito ou recriar a Activity).
-        favorita = listener?.ehFavorita(receita) ?: favorita
+        val receita = viewModel.receitaPorId(receitaId) ?: return
 
-        // ── Header colorido ──────────────────────────────────────────
-        val estilo = MiniaturaReceitaView.estiloDaCategoria(receita.categoria)
-        val header = view.findViewById<FrameLayout>(R.id.headerCategoria)
+        configurarHeader(receita)
+        configurarBotoes(receita)
+        configurarTextos(receita)
+        configurarIngredientesEPassos(receita)
+        observarFavorito(receita)
+    }
+
+    override fun onDestroyView() {
+        _binding = null
+        super.onDestroyView()
+    }
+
+    // ── Configuração das views ────────────────────────────────────────────
+
+    private fun configurarHeader(receita: Receita) {
         val fundoDrawable = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
-            setColor(ContextCompat.getColor(requireContext(), estilo.fundoRes))
+            setColor(ContextCompat.getColor(requireContext(), receita.categoria.fundoRes))
         }
-        header.background = fundoDrawable
+        binding.headerCategoria.background = fundoDrawable
+        binding.txtEmojiHeader.text = receita.categoria.emoji
+    }
 
-        view.findViewById<TextView>(R.id.txtEmojiHeader).text = estilo.emoji
-
-        // ── Botão Voltar ──────────────────────────────────────────────
-        view.findViewById<ImageButton>(R.id.btnVoltar).setOnClickListener {
-            listener?.onVoltar()
+    private fun configurarBotoes(receita: Receita) {
+        binding.btnVoltar.setOnClickListener {
+            parentFragmentManager.popBackStack()
         }
-
-        // ── Botão Favorito ────────────────────────────────────────────
-        val btnFavorito = view.findViewById<ImageButton>(R.id.btnFavoritoDetalhe)
-        atualizarIconeFavorito(btnFavorito)
-        btnFavorito.setOnClickListener {
-            listener?.onToggleFavorito(receita)
+        binding.btnFavoritoDetalhe.setOnClickListener {
+            viewModel.alternarFavorito(receita.id)
         }
+    }
 
-        // ── Textos de cabeçalho ───────────────────────────────────────
-        view.findViewById<TextView>(R.id.txtCategoria).apply {
-            isVisible = receita.categoria.isNotBlank()
-            text = receita.categoria
+    private fun configurarTextos(receita: Receita) {
+        binding.txtCategoria.apply {
+            isVisible = receita.categoria.titulo.isNotBlank()
+            text = receita.categoria.titulo
         }
 
-        view.findViewById<TextView>(R.id.txtTituloReceita).text = receita.titulo
+        binding.txtTituloReceita.text = receita.titulo
 
         val resumo = listOf(
             receita.tempo,
@@ -96,43 +92,47 @@ class DetalhesReceitaFragment : Fragment() {
             if (receita.porcoes > 0) "${receita.porcoes} porções" else ""
         ).filter { it.isNotBlank() }.joinToString(" · ")
 
-        view.findViewById<TextView>(R.id.txtResumo).apply {
+        binding.txtResumo.apply {
             isVisible = resumo.isNotEmpty()
             text = resumo
         }
 
-        view.findViewById<TextView>(R.id.txtDescricao).apply {
+        binding.txtDescricao.apply {
             isVisible = receita.descricao.isNotBlank()
             text = receita.descricao
         }
+    }
 
-        // ── Ingredientes ──────────────────────────────────────────────
+    private fun configurarIngredientesEPassos(receita: Receita) {
         val corTexto = MaterialColors.getColor(
-            view, com.google.android.material.R.attr.colorOnBackground
+            binding.root, com.google.android.material.R.attr.colorOnBackground
         )
-        val containerIngredientes = view.findViewById<LinearLayout>(R.id.containerIngredientes)
         receita.ingredientes.forEach { ingrediente ->
-            adicionarLinhaTexto(containerIngredientes, "•", ingrediente, corTexto)
+            adicionarLinhaTexto("•", ingrediente, corTexto, toPassos = false)
         }
-
-        // ── Passos ────────────────────────────────────────────────────
-        val containerPassos = view.findViewById<LinearLayout>(R.id.containerPassos)
         receita.passos.forEachIndexed { index, passo ->
-            adicionarLinhaTexto(containerPassos, "${index + 1}.", passo, corTexto)
+            adicionarLinhaTexto("${index + 1}.", passo, corTexto, toPassos = true)
         }
     }
 
-    // ── Helpers ────────────────────────────────────────────────────────
+    // ── Observadores ─────────────────────────────────────────────────────
 
-    /** Alterna o ícone e tint do botão favorito conforme o estado atual. */
-    fun setFavorita(isFavorita: Boolean) {
-        favorita = isFavorita
-        view?.findViewById<ImageButton>(R.id.btnFavoritoDetalhe)?.let {
-            atualizarIconeFavorito(it)
+    private fun observarFavorito(receita: Receita) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.favoritas.collect { favoritasList: List<Receita> ->
+                    atualizarIconeFavorito(
+                        binding.btnFavoritoDetalhe,
+                        favoritasList.any { it.id == receita.id }
+                    )
+                }
+            }
         }
     }
 
-    private fun atualizarIconeFavorito(btn: ImageButton) {
+    // ── Helpers ───────────────────────────────────────────────────────────
+
+    private fun atualizarIconeFavorito(btn: ImageButton, favorita: Boolean) {
         if (favorita) {
             btn.setImageResource(R.drawable.ic_favorite)
             btn.setColorFilter(ContextCompat.getColor(requireContext(), R.color.favorito))
@@ -144,60 +144,25 @@ class DetalhesReceitaFragment : Fragment() {
         }
     }
 
-    /**
-     * Adiciona uma linha "prefixo + texto" no estilo bodyLarge
-     * ao container informado (equivale ao Row { Text("•") Text(ingrediente) } do Compose).
-     */
     private fun adicionarLinhaTexto(
-        container: LinearLayout,
         prefixo: String,
         texto: String,
-        @ColorInt cor: Int
+        @ColorInt cor: Int,
+        toPassos: Boolean
     ) {
-        val row = LinearLayout(requireContext()).apply {
-            orientation = LinearLayout.HORIZONTAL
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
+        val linhaView = LinhaReceitaView(requireContext()).apply {
+            setLinha(prefixo, texto)
         }
-
-        val txtPrefixo = TextView(requireContext()).apply {
-            this.text = prefixo
-            setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyLarge)
-            setTextColor(cor)
-            layoutParams = LinearLayout.LayoutParams(
-                resources.getDimensionPixelSize(R.dimen.prefixo_largura),
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-        }
-
-        val txtConteudo = TextView(requireContext()).apply {
-            this.text = texto
-            setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyLarge)
-            setTextColor(cor)
-            layoutParams = LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                1f
-            )
-        }
-
-        row.addView(txtPrefixo)
-        row.addView(txtConteudo)
-        container.addView(row)
+        val container = if (toPassos) binding.containerPassos else binding.containerIngredientes
+        container.addView(linhaView)
     }
 
     companion object {
-        private const val ARG_RECEITA  = "receita"
-        private const val ARG_FAVORITA = "favorita"
+        private const val ARG_RECEITA_ID = "receita_id"
 
-        fun newInstance(receita: Receita, favorita: Boolean = false) =
+        fun newInstance(receitaId: Int) =
             DetalhesReceitaFragment().apply {
-                arguments = bundleOf(
-                    ARG_RECEITA  to receita,
-                    ARG_FAVORITA to favorita
-                )
+                arguments = bundleOf(ARG_RECEITA_ID to receitaId)
             }
     }
 }

@@ -1,13 +1,14 @@
 package com.example.app_catalogo_receitas_xml.data
 
+import com.example.app_catalogo_receitas_xml.model.Categoria
 import com.example.app_catalogo_receitas_xml.model.Receita
 
-object Receitas {
+object ReceitasDataSource {
     val receitas = listOf(
         Receita(
             id = 1,
             titulo = "Bolo de Cenoura",
-            categoria = "Doces",
+            categoria = Categoria.DOCES,
             tempo = "45 min",
             dificuldade = "Fácil",
             porcoes = 8,
@@ -31,7 +32,7 @@ object Receitas {
         Receita(
             id = 2,
             titulo = "Macarrão à Bolonhesa",
-            categoria = "Massas",
+            categoria = Categoria.MASSAS,
             tempo = "30 min",
             dificuldade = "Fácil",
             porcoes = 4,
@@ -55,7 +56,7 @@ object Receitas {
         Receita(
             id = 3,
             titulo = "Salada Caesar",
-            categoria = "Saladas",
+            categoria = Categoria.SALADAS,
             tempo = "20 min",
             dificuldade = "Fácil",
             porcoes = 2,
@@ -76,7 +77,7 @@ object Receitas {
         Receita(
             id = 4,
             titulo = "Panqueca Americana",
-            categoria = "Café da Manhã",
+            categoria = Categoria.CAFE_DA_MANHA,
             tempo = "15 min",
             dificuldade = "Fácil",
             porcoes = 3,
@@ -99,7 +100,7 @@ object Receitas {
         Receita(
             id = 5,
             titulo = "Strogonoff de Frango",
-            categoria = "Pratos Principais",
+            categoria = Categoria.PRATOS_PRINCIPAIS,
             tempo = "35 min",
             dificuldade = "Médio",
             porcoes = 5,

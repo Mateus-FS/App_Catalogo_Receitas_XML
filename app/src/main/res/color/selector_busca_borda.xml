@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Borda do campo de busca: verde com foco, cinza sem foco -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/verde" android:state_focused="true" />
+    <item android:color="@color/borda" />
+</selector>

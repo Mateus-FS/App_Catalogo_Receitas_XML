@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Estilos de texto equivalentes à tipografia do app em Compose -->
+
+    <!-- headlineLarge: título "ReceitasDataSource" / "Favoritos" -->
+    <style name="TextoCabecalhoGrande" parent="">
+        <item name="android:textSize">34sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/texto_principal</item>
+    </style>
+
+    <!-- headlineMedium: título da receita nos detalhes -->
+    <style name="TextoTituloDetalhe" parent="">
+        <item name="android:textSize">28sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/texto_principal</item>
+        <item name="android:lineSpacingExtra">1sp</item>
+    </style>
+
+    <!-- titleLarge: "Ingredientes" e "Modo de preparo" -->
+    <style name="TextoSecao" parent="">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/texto_principal</item>
+        <item name="android:lineSpacingExtra">3sp</item>
+    </style>
+
+    <!-- titleMedium: título do card -->
+    <style name="TextoTituloCard" parent="">
+        <item name="android:textSize">17sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/texto_principal</item>
+        <item name="android:lineSpacingExtra">2sp</item>
+    </style>
+
+    <!-- bodyLarge: itens das listas e mensagens -->
+    <style name="TextoCorpo" parent="">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/texto_principal</item>
+        <item name="android:letterSpacing">0.03</item>
+        <item name="android:lineSpacingExtra">5sp</item>
+    </style>
+
+    <!-- bodyMedium: textos de apoio -->
+    <style name="TextoCorpoMedio" parent="">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/texto_secundario</item>
+        <item name="android:lineSpacingExtra">4sp</item>
+    </style>
+
+    <!-- labelMedium: categoria em verde -->
+    <style name="TextoRotulo" parent="">
+        <item name="android:textSize">13sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/verde</item>
+        <item name="android:lineSpacingExtra">3sp</item>
+    </style>
+</resources>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    ListaReceitasScreen → fragment_lista_receitas.xml
+    ListaReceitasFragment → fragment_lista_receitas.xml
     Estrutura: CoordinatorLayout com AppBar fixa (título + busca + chips)
     e RecyclerView rolável abaixo. A BarraNavegacao fica na Activity host.
 -->

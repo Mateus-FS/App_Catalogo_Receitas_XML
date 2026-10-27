@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    ChipCategoria — equivalente XML do composable ChipCategoria.
+    ChipCategoria
     Use ChipCategoriaView (Kotlin) para controlar o estado selecionado.
     Ou use diretamente com.google.android.material.chip.Chip em um ChipGroup.
 -->

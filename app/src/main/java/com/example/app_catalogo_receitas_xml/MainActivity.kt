@@ -1,83 +1,83 @@
 package com.example.app_catalogo_receitas_xml
 
 import android.os.Bundle
-import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.commit
+import com.example.app_catalogo_receitas_xml.databinding.ActivityMainBinding
 import com.example.app_catalogo_receitas_xml.ui.screens.DetalhesReceitaFragment
 import com.example.app_catalogo_receitas_xml.ui.screens.ListaReceitasFragment
 import com.example.app_catalogo_receitas_xml.ui.screens.ReceitasFavoritasFragment
-import com.google.android.material.bottomnavigation.BottomNavigationView
 
+/**
+ * Única Activity do app: hospeda os Fragments e a barra de navegação inferior.
+ *
+ * Não guarda estado de receitas nem de favoritos; isso é responsabilidade
+ * do [com.example.app_catalogo_receitas_xml.ui.viewmodel.ReceitasViewModel].
+ */
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var bottomNavContainer: View
-    private lateinit var bottomNavView: BottomNavigationView
+    private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0)
-            insets
-        }
-
-        bottomNavContainer = findViewById(R.id.barraNavegacao)
-        bottomNavView = bottomNavContainer.findViewById(R.id.bottomNavigationView)
-
-        bottomNavView.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_receitas -> {
-                    exibirFragmentoLista()
-                    true
-                }
-                R.id.nav_favoritos -> {
-                    exibirFragmentoFavoritos()
-                    true
-                }
-                else -> false
-            }
-        }
+        configurarInsets()
+        configurarBarraNavegacao()
 
         supportFragmentManager.addOnBackStackChangedListener { atualizarVisibilidadeBarra() }
 
         if (savedInstanceState == null) {
-            exibirFragmentoLista()
+            trocarFragmento(ListaReceitasFragment.newInstance(), TAG_LISTA)
         } else {
+            // Os fragments são restaurados pelo sistema; só ajusta a barra.
             atualizarVisibilidadeBarra()
         }
     }
 
-    private fun exibirFragmentoLista() {
-        val fragment = ListaReceitasFragment.newInstance()
-        trocarFragmento(fragment, TAG_LISTA)
+    private fun configurarInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.main) { view, insets ->
+            val barras = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            // Sem padding inferior: a barra de navegação cuida do próprio espaçamento.
+            view.setPadding(barras.left, barras.top, barras.right, 0)
+            insets
+        }
     }
 
-    private fun exibirFragmentoFavoritos() {
-        val fragment = ReceitasFavoritasFragment.newInstance()
-        trocarFragmento(fragment, TAG_FAVORITOS)
+    private fun configurarBarraNavegacao() {
+        binding.barraNavegacao.bottomNavigationView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_receitas -> trocarFragmento(ListaReceitasFragment.newInstance(), TAG_LISTA)
+                R.id.nav_favoritos ->
+                    trocarFragmento(ReceitasFavoritasFragment.newInstance(), TAG_FAVORITOS)
+                else -> return@setOnItemSelectedListener false
+            }
+            true
+        }
     }
 
     private fun trocarFragmento(fragment: Fragment, tag: String) {
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, fragment, tag)
-            .commit()
+        supportFragmentManager.commit {
+            setReorderingAllowed(true)
+            replace(R.id.fragment_container, fragment, tag)
+        }
     }
 
+    /** A barra inferior some na tela de detalhes, que tem o próprio botão de voltar. */
     private fun atualizarVisibilidadeBarra() {
-        val fragmentAtual = supportFragmentManager.findFragmentById(R.id.fragment_container)
-        bottomNavContainer.visibility =
-            if (fragmentAtual is DetalhesReceitaFragment) View.GONE else View.VISIBLE
+        val atual = supportFragmentManager.findFragmentById(R.id.fragment_container)
+        binding.barraNavegacao.root.isVisible = atual !is DetalhesReceitaFragment
     }
 
-    companion object {
-        private const val TAG_LISTA = "lista"
-        private const val TAG_FAVORITOS = "favoritos"
+    private companion object {
+        const val TAG_LISTA = "lista"
+        const val TAG_FAVORITOS = "favoritos"
     }
 }

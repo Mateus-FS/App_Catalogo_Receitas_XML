@@ -1,27 +1,32 @@
 <resources>
     <string name="app_name">App_Catalogo_Receitas_XML</string>
 
-    <!-- BarraNavegacao -->
+    <!-- Barra de navegação -->
     <string name="nav_receitas">Receitas</string>
     <string name="nav_favoritos">Favoritos</string>
 
-    <!-- ReceitaCard -->
+    <!-- Card de receita -->
     <string name="cd_adicionar_favorito">Adicionar aos favoritos</string>
     <string name="cd_remover_favorito">Remover dos favoritos</string>
 
-    <!-- ListaReceitasScreen -->
+    <!-- Tela de lista (ListaReceitasFragment) -->
     <string name="lista_subtitulo">O que vamos cozinhar hoje?</string>
     <string name="lista_titulo">Receitas</string>
     <string name="busca_hint">Buscar receita ou ingrediente</string>
     <string name="lista_vazia">Nenhuma receita encontrada.</string>
+    <string name="categoria_todas">Todas</string>
 
-    <!-- ReceitasFavoritasScreen -->
+    <!-- Tela de favoritos (ReceitasFavoritasFragment) -->
     <string name="favoritos_subtitulo">Suas preferidas</string>
     <string name="favoritos_titulo">Favoritos</string>
     <string name="favoritos_vazio">Toque no coração de uma receita para guardá-la aqui.</string>
 
-    <!-- DetalhesReceitaScreen -->
+    <!-- Tela de detalhes (DetalhesReceitaFragment) -->
     <string name="detalhes_ingredientes">Ingredientes</string>
     <string name="detalhes_preparo">Modo de preparo</string>
     <string name="cd_voltar">Voltar</string>
+    <plurals name="porcoes">
+        <item quantity="one">%d porção</item>
+        <item quantity="other">%d porções</item>
+    </plurals>
 </resources>

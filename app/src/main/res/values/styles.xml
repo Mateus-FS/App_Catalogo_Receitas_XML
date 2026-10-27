@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Estilos de texto equivalentes à tipografia do app em Compose -->
 
-    <!-- headlineLarge: título "ReceitasDataSource" / "Favoritos" -->
+    <!-- headlineLarge: título "Receitas" / "Favoritos" -->
     <style name="TextoCabecalhoGrande" parent="">
         <item name="android:textSize">34sp</item>
         <item name="android:textStyle">bold</item>

@@ -5,7 +5,6 @@ import android.view.View
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.commit
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -14,9 +13,11 @@ import androidx.recyclerview.widget.SimpleItemAnimator
 import com.example.app_catalogo_receitas_xml.R
 import com.example.app_catalogo_receitas_xml.databinding.FragmentReceitasFavoritasBinding
 import com.example.app_catalogo_receitas_xml.model.Receita
+import com.example.app_catalogo_receitas_xml.ui.components.ReceitaAdapter
+import com.example.app_catalogo_receitas_xml.ui.components.SpacingItemDecoration
+import com.example.app_catalogo_receitas_xml.ui.navigation.abrirDetalhes
 import com.example.app_catalogo_receitas_xml.ui.viewmodel.ReceitaItem
 import com.example.app_catalogo_receitas_xml.ui.viewmodel.ReceitasViewModel
-import com.example.app_catalogo_receitas_xml.ui.components.SpacingItemDecoration
 import kotlinx.coroutines.launch
 
 /**
@@ -75,14 +76,6 @@ class ReceitasFavoritasFragment : Fragment(R.layout.fragment_receitas_favoritas)
         val vazio = favoritas.isEmpty()
         binding.layoutVazio.isVisible = vazio
         binding.recyclerFavoritas.isVisible = !vazio
-    }
-
-    private fun abrirDetalhes(receitaId: Int) {
-        parentFragmentManager.commit {
-            setReorderingAllowed(true)
-            replace(R.id.fragment_container, DetalhesReceitaFragment.newInstance(receitaId))
-            addToBackStack(null)
-        }
     }
 
     companion object {

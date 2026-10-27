@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    ReceitasFavoritasScreen → fragment_receitas_favoritas.xml
+    ReceitasFavoritasFragment → fragment_receitas_favoritas.xml
     Estrutura idêntica à ListaReceitas mas sem busca/chips,
     e com estado vazio especial (ícone + mensagem).
 -->

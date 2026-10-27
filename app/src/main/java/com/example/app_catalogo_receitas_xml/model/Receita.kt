@@ -1,10 +1,11 @@
 package com.example.app_catalogo_receitas_xml.model
 
-import android.os.Parcelable
-import androidx.annotation.DrawableRes
-import kotlinx.parcelize.Parcelize
-
-@Parcelize
+/**
+ * Receita do catálogo.
+ *
+ * Só o [id] trafega entre telas (via arguments do Fragment); o objeto completo é buscado
+ * no ViewModel. Por isso a classe não precisa mais ser Parcelable.
+ */
 data class Receita(
     val id: Int,
     val titulo: String,
@@ -14,7 +15,5 @@ data class Receita(
     val porcoes: Int = 0,
     val descricao: String,
     val ingredientes: List<String>,
-    val passos: List<String>,
-    @DrawableRes val imagem: Int = 0,
-    val favorito: Boolean = false
-) : Parcelable
+    val passos: List<String>
+)

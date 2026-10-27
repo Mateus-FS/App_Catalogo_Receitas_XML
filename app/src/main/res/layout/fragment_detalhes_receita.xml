@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    DetalhesReceitaScreen → fragment_detalhes_receita.xml
+    DetalhesReceitaFragment → fragment_detalhes_receita.xml
     Topo colorido (miniatura grande + botões voltar/favorito flutuantes),
     seguido de ScrollView com todos os detalhes da receita.
 -->

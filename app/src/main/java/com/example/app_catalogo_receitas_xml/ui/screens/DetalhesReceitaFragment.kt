@@ -1,10 +1,8 @@
 package com.example.app_catalogo_receitas_xml.ui.screens
 
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.View
-import android.widget.ImageButton
-import androidx.annotation.ColorInt
+import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
@@ -17,14 +15,14 @@ import com.example.app_catalogo_receitas_xml.R
 import com.example.app_catalogo_receitas_xml.databinding.FragmentDetalhesReceitaBinding
 import com.example.app_catalogo_receitas_xml.model.Receita
 import com.example.app_catalogo_receitas_xml.ui.components.LinhaReceitaView
+import com.example.app_catalogo_receitas_xml.ui.components.setFavorito
 import com.example.app_catalogo_receitas_xml.ui.viewmodel.ReceitasViewModel
-import com.google.android.material.color.MaterialColors
 import kotlinx.coroutines.launch
 
 /**
  * Tela de detalhes de uma receita.
  *
- * Usa o [ReceitasViewModel] compartilhado e recebe apenas o ID da receita via arguments.
+ * Recebe apenas o id pelos arguments; os dados vêm do [ReceitasViewModel] compartilhado.
  */
 class DetalhesReceitaFragment : Fragment(R.layout.fragment_detalhes_receita) {
 
@@ -33,24 +31,25 @@ class DetalhesReceitaFragment : Fragment(R.layout.fragment_detalhes_receita) {
     private var _binding: FragmentDetalhesReceitaBinding? = null
     private val binding get() = _binding!!
 
-    private var receitaId: Int = -1
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        receitaId = arguments?.getInt(ARG_RECEITA_ID) ?: -1
-    }
+    // requireArguments() falha cedo se o fragment for criado sem passar por newInstance().
+    private val receitaId: Int get() = requireArguments().getInt(ARG_RECEITA_ID)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentDetalhesReceitaBinding.bind(view)
 
-        val receita = viewModel.receitaPorId(receitaId) ?: return
+        val receita = viewModel.receitaPorId(receitaId)
+        if (receita == null) {
+            // Id inexistente: não deixa o usuário numa tela em branco.
+            parentFragmentManager.popBackStack()
+            return
+        }
 
         configurarHeader(receita)
-        configurarBotoes(receita)
         configurarTextos(receita)
         configurarIngredientesEPassos(receita)
-        observarFavorito(receita)
+        configurarBotoes()
+        observarFavorito()
     }
 
     override fun onDestroyView() {
@@ -61,21 +60,10 @@ class DetalhesReceitaFragment : Fragment(R.layout.fragment_detalhes_receita) {
     // ── Configuração das views ────────────────────────────────────────────
 
     private fun configurarHeader(receita: Receita) {
-        val fundoDrawable = GradientDrawable().apply {
-            shape = GradientDrawable.RECTANGLE
-            setColor(ContextCompat.getColor(requireContext(), receita.categoria.fundoRes))
-        }
-        binding.headerCategoria.background = fundoDrawable
+        binding.headerCategoria.setBackgroundColor(
+            ContextCompat.getColor(requireContext(), receita.categoria.fundoRes)
+        )
         binding.txtEmojiHeader.text = receita.categoria.emoji
-    }
-
-    private fun configurarBotoes(receita: Receita) {
-        binding.btnVoltar.setOnClickListener {
-            parentFragmentManager.popBackStack()
-        }
-        binding.btnFavoritoDetalhe.setOnClickListener {
-            viewModel.alternarFavorito(receita.id)
-        }
     }
 
     private fun configurarTextos(receita: Receita) {
@@ -86,12 +74,7 @@ class DetalhesReceitaFragment : Fragment(R.layout.fragment_detalhes_receita) {
 
         binding.txtTituloReceita.text = receita.titulo
 
-        val resumo = listOf(
-            receita.tempo,
-            receita.dificuldade,
-            if (receita.porcoes > 0) "${receita.porcoes} porções" else ""
-        ).filter { it.isNotBlank() }.joinToString(" · ")
-
+        val resumo = montarResumo(receita)
         binding.txtResumo.apply {
             isVisible = resumo.isNotEmpty()
             text = resumo
@@ -104,27 +87,22 @@ class DetalhesReceitaFragment : Fragment(R.layout.fragment_detalhes_receita) {
     }
 
     private fun configurarIngredientesEPassos(receita: Receita) {
-        val corTexto = MaterialColors.getColor(
-            binding.root, com.google.android.material.R.attr.colorOnBackground
-        )
-        receita.ingredientes.forEach { ingrediente ->
-            adicionarLinhaTexto("•", ingrediente, corTexto, toPassos = false)
-        }
-        receita.passos.forEachIndexed { index, passo ->
-            adicionarLinhaTexto("${index + 1}.", passo, corTexto, toPassos = true)
-        }
+        preencherLinhas(binding.containerIngredientes, receita.ingredientes) { "•" }
+        preencherLinhas(binding.containerPassos, receita.passos) { indice -> "${indice + 1}." }
     }
 
-    // ── Observadores ─────────────────────────────────────────────────────
+    private fun configurarBotoes() {
+        binding.btnVoltar.setOnClickListener { parentFragmentManager.popBackStack() }
+        binding.btnFavoritoDetalhe.setOnClickListener { viewModel.alternarFavorito(receitaId) }
+    }
 
-    private fun observarFavorito(receita: Receita) {
+    // ── Estado → tela ─────────────────────────────────────────────────────
+
+    private fun observarFavorito() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.favoritas.collect { favoritasList: List<Receita> ->
-                    atualizarIconeFavorito(
-                        binding.btnFavoritoDetalhe,
-                        favoritasList.any { it.id == receita.id }
-                    )
+                viewModel.favoritosIds.collect { ids ->
+                    binding.btnFavoritoDetalhe.setFavorito(receitaId in ids)
                 }
             }
         }
@@ -132,37 +110,36 @@ class DetalhesReceitaFragment : Fragment(R.layout.fragment_detalhes_receita) {
 
     // ── Helpers ───────────────────────────────────────────────────────────
 
-    private fun atualizarIconeFavorito(btn: ImageButton, favorita: Boolean) {
-        if (favorita) {
-            btn.setImageResource(R.drawable.ic_favorite)
-            btn.setColorFilter(ContextCompat.getColor(requireContext(), R.color.favorito))
-            btn.contentDescription = getString(R.string.cd_remover_favorito)
+    /** "tempo · dificuldade · N porções", ignorando o que estiver vazio. */
+    private fun montarResumo(receita: Receita): String {
+        val porcoes = if (receita.porcoes > 0) {
+            resources.getQuantityString(R.plurals.porcoes, receita.porcoes, receita.porcoes)
         } else {
-            btn.setImageResource(R.drawable.ic_favorite_border)
-            btn.clearColorFilter()
-            btn.contentDescription = getString(R.string.cd_adicionar_favorito)
+            ""
         }
+        return listOf(receita.tempo, receita.dificuldade, porcoes)
+            .filter { it.isNotBlank() }
+            .joinToString(" · ")
     }
 
-    private fun adicionarLinhaTexto(
-        prefixo: String,
-        texto: String,
-        @ColorInt cor: Int,
-        toPassos: Boolean
+    /** Adiciona uma [LinhaReceitaView] por item; [marcador] recebe o índice do item. */
+    private fun preencherLinhas(
+        container: ViewGroup,
+        itens: List<String>,
+        marcador: (indice: Int) -> String
     ) {
-        val linhaView = LinhaReceitaView(requireContext()).apply {
-            setLinha(prefixo, texto)
+        itens.forEachIndexed { indice, texto ->
+            container.addView(
+                LinhaReceitaView(requireContext()).apply { setLinha(marcador(indice), texto) }
+            )
         }
-        val container = if (toPassos) binding.containerPassos else binding.containerIngredientes
-        container.addView(linhaView)
     }
 
     companion object {
         private const val ARG_RECEITA_ID = "receita_id"
 
-        fun newInstance(receitaId: Int) =
-            DetalhesReceitaFragment().apply {
-                arguments = bundleOf(ARG_RECEITA_ID to receitaId)
-            }
+        fun newInstance(receitaId: Int) = DetalhesReceitaFragment().apply {
+            arguments = bundleOf(ARG_RECEITA_ID to receitaId)
+        }
     }
 }

@@ -17,13 +17,14 @@ import kotlinx.coroutines.flow.stateIn
 /**
  * Estado da lista de receitas já pronto para a tela desenhar.
  *
- * @property itens receitas que passaram pelo filtro de busca e categoria,
- *                 cada uma com a informação de favorita.
+ * @property itens                receitas que passaram pelo filtro, cada uma com a marca de favorita.
+ * @property busca                texto digitado na busca.
+ * @property categoriaSelecionada categoria filtrada; `null` significa "todas".
  */
 data class ListaUiState(
     val itens: List<ReceitaItem>,
     val busca: String,
-    val categoriaSelecionada: String
+    val categoriaSelecionada: Categoria?
 ) {
     val vazio: Boolean get() = itens.isEmpty()
 }
@@ -31,30 +32,30 @@ data class ListaUiState(
 /**
  * ViewModel compartilhado pelos três Fragments via `activityViewModels()`.
  *
- * Favoritos, busca e categoria são persistidos no [SavedStateHandle],
- * sobrevivendo à rotação e à morte do processo pelo sistema.
+ * Favoritos, busca e categoria ficam no [SavedStateHandle] e sobrevivem à rotação
+ * e à morte do processo pelo sistema.
+ *
+ * As receitas são recebidas pelo construtor (padrão: [ReceitasDataSource]), o que permite
+ * testar o filtro com uma lista própria. O `@JvmOverloads` mantém o construtor
+ * `(SavedStateHandle)` que a fábrica padrão do Android usa.
  */
-class ReceitasViewModel(
-    private val estado: SavedStateHandle = SavedStateHandle()
-) : ViewModel() {
-
+class ReceitasViewModel @JvmOverloads constructor(
+    private val estado: SavedStateHandle,
     private val todasReceitas: List<Receita> = ReceitasDataSource.receitas
+) : ViewModel() {
 
     // ── Estado interno (fonte de verdade) ─────────────────────────────────
 
     private val _favoritosIds = MutableStateFlow(
         estado.get<IntArray>(KEY_FAVORITOS)?.toSet() ?: emptySet()
     )
-    private val _busca = MutableStateFlow(estado.get<String>(KEY_BUSCA) ?: "")
-    private val _categoria = MutableStateFlow(estado.get<String>(KEY_CATEGORIA) ?: TODAS)
+    private val _busca = MutableStateFlow(estado.get<String>(KEY_BUSCA).orEmpty())
+    private val _categoria = MutableStateFlow(lerCategoriaSalva())
 
     // ── Estado exposto para as telas ─────────────────────────────────────
 
+    /** Ids das receitas favoritas. Usado pela tela de detalhes para pintar o coração. */
     val favoritosIds: StateFlow<Set<Int>> = _favoritosIds.asStateFlow()
-
-    /** Categorias para os chips: "Todas" + as categorias existentes (sem repetição). */
-    val categorias: List<String> =
-        listOf(TODAS) + Categoria.entries.map { it.titulo }
 
     /** Lista da tela inicial, já filtrada por busca e categoria. */
     val listaUiState: StateFlow<ListaUiState> =
@@ -96,23 +97,30 @@ class ReceitasViewModel(
         estado[KEY_BUSCA] = texto
     }
 
-    fun selecionarCategoria(categoria: String) {
+    /** @param categoria categoria a filtrar, ou `null` para mostrar todas. */
+    fun selecionarCategoria(categoria: Categoria?) {
         if (categoria == _categoria.value) return
         _categoria.value = categoria
-        estado[KEY_CATEGORIA] = categoria
+        estado[KEY_CATEGORIA] = categoria?.name
     }
 
-    // ── Regra de filtro ───────────────────────────────────────────────────
+    // ── Regras internas ───────────────────────────────────────────────────
+
+    /** Lê a categoria salva (guardada pelo nome do enum); valor ausente ou inválido vira `null`. */
+    private fun lerCategoriaSalva(): Categoria? {
+        val nome = estado.get<String>(KEY_CATEGORIA) ?: return null
+        return Categoria.entries.firstOrNull { it.name == nome }
+    }
 
     private fun montarLista(
         busca: String,
-        categoria: String,
+        categoria: Categoria?,
         favoritos: Set<Int>
     ): ListaUiState {
         val termo = busca.trim()
         val itens = todasReceitas
             .filter { receita ->
-                val bateCategoria = categoria == TODAS || receita.categoria.titulo == categoria
+                val bateCategoria = categoria == null || receita.categoria == categoria
                 val bateBusca = termo.isEmpty() ||
                         receita.titulo.contains(termo, ignoreCase = true) ||
                         receita.ingredientes.any { it.contains(termo, ignoreCase = true) }
@@ -123,11 +131,10 @@ class ReceitasViewModel(
         return ListaUiState(itens, busca, categoria)
     }
 
-    companion object {
-        const val TODAS = "Todas"
-        private const val KEY_FAVORITOS = "favoritos_ids"
-        private const val KEY_BUSCA = "busca"
-        private const val KEY_CATEGORIA = "categoria"
-        private const val STOP_TIMEOUT_MS = 5_000L
+    private companion object {
+        const val KEY_FAVORITOS = "favoritos_ids"
+        const val KEY_BUSCA = "busca"
+        const val KEY_CATEGORIA = "categoria"
+        const val STOP_TIMEOUT_MS = 5_000L
     }
 }
